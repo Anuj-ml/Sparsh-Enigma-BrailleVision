@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <!-- Gradient for the filled Braille dots -->
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <!-- Subtle glow filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background (soft dark rounded card for contrast in light/dark browser tabs) -->
+  <rect width="100" height="100" rx="22" fill="#09090b" />
+  
+  <!-- Outer Viewfinder / Camera outline -->
+  <rect x="15" y="15" width="70" height="70" rx="16" stroke="#27272a" stroke-width="2" fill="none" />
+  
+  <!-- Viewfinder corner marks -->
+  <path d="M 24 15 L 15 15 L 15 24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" />
+  <path d="M 76 15 L 85 15 L 85 24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" />
+  <path d="M 24 85 L 15 85 L 15 76" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" />
+  <path d="M 76 85 L 85 85 L 85 76" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" />
+  
+  <!-- Subtle aperture ring -->
+  <circle cx="50" cy="50" r="32" stroke="#27272a" stroke-width="1.5" stroke-dasharray="6 3" fill="none" />
+  
+  <!-- Braille Grid representing 's' (011100) -->
+  <!-- Dot 1 (empty) -->
+  <circle cx="38" cy="32" r="4.5" stroke="#52525b" stroke-width="1.5" fill="none" />
+  
+  <!-- Dot 2 (filled - s) -->
+  <circle cx="38" cy="50" r="6.5" fill="url(#glowGrad)" filter="url(#glow)" />
+  
+  <!-- Dot 3 (filled - s) -->
+  <circle cx="38" cy="68" r="6.5" fill="url(#glowGrad)" filter="url(#glow)" />
+  
+  <!-- Dot 4 (filled - s) -->
+  <circle cx="62" cy="32" r="6.5" fill="url(#glowGrad)" filter="url(#glow)" />
+  
+  <!-- Dot 5 (empty) -->
+  <circle cx="62" cy="50" r="4.5" stroke="#52525b" stroke-width="1.5" fill="none" />
+  
+  <!-- Dot 6 (empty) -->
+  <circle cx="62" cy="68" r="4.5" stroke="#52525b" stroke-width="1.5" fill="none" />
+  
+  <!-- Center camera lens dot indicator (subtle) -->
+  <circle cx="50" cy="50" r="1.5" fill="#52525b" opacity="0.6" />
+</svg>
