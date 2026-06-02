@@ -7,7 +7,7 @@ export const iconPropTypes = {
   className: 'w-6 h-6 transition-all duration-200',
 };
 
-// 1. Sparsh Logo Icon (Viewfinder + Braille 's' pattern)
+// 1. Sparsh Logo Icon (Haptic concentric circles + Braille 's' 3x2 pattern)
 export function LogoIcon({ className = 'w-8 h-8', ...props }) {
   return (
     <svg
@@ -16,28 +16,38 @@ export function LogoIcon({ className = 'w-8 h-8', ...props }) {
       className={`${className}`}
       fill="none"
       stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       {...props}
     >
-      {/* Outer viewfinder frame */}
-      <rect x="18" y="18" width="64" height="64" rx="14" strokeWidth="2.5" stroke="currentColor" opacity="0.3" />
-      <path d="M 28 18 L 18 18 L 18 28" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M 72 18 L 82 18 L 82 28" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M 28 82 L 18 82 L 18 72" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M 72 82 L 82 82 L 82 72" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Concentric haptic pulse waves */}
+      <circle cx="50" cy="50" r="44" opacity="0.15" strokeWidth="1.2" />
+      <circle cx="50" cy="50" r="37" opacity="0.3" strokeWidth="1.2" strokeDasharray="6 3" />
+      <circle cx="50" cy="50" r="30" opacity="0.45" strokeWidth="1.5" />
+      <circle cx="50" cy="50" r="23" opacity="0.6" strokeWidth="1.5" strokeDasharray="10 3" />
+      <circle cx="50" cy="50" r="16" opacity="0.8" strokeWidth="1.5" />
 
-      {/* Braille dots representing 's' (011100) */}
-      {/* Dot 1 (empty outline) */}
-      <circle cx="38" cy="35" r="4" strokeWidth="1.5" stroke="currentColor" opacity="0.3" />
-      {/* Dot 2 (filled) */}
+      {/* Perfect 3x2 Braille cell (s = 011100) */}
+      {/* Column 1: x=38 | Column 2: x=62 */}
+      {/* Row 1: y=32 | Row 2: y=50 | Row 3: y=68 */}
+      
+      {/* Dot 1: Column 1, Row 1 (empty - thin stroke) */}
+      <circle cx="38" cy="32" r="4.5" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.4" />
+      
+      {/* Dot 2: Column 1, Row 2 (active - filled) */}
       <circle cx="38" cy="50" r="5.5" fill="currentColor" stroke="none" />
-      {/* Dot 3 (filled) */}
-      <circle cx="38" cy="65" r="5.5" fill="currentColor" stroke="none" />
-      {/* Dot 4 (filled) */}
-      <circle cx="62" cy="35" r="5.5" fill="currentColor" stroke="none" />
-      {/* Dot 5 (empty outline) */}
-      <circle cx="62" cy="50" r="4" strokeWidth="1.5" stroke="currentColor" opacity="0.3" />
-      {/* Dot 6 (empty outline) */}
-      <circle cx="62" cy="65" r="4" strokeWidth="1.5" stroke="currentColor" opacity="0.3" />
+      
+      {/* Dot 3: Column 1, Row 3 (active - filled) */}
+      <circle cx="38" cy="68" r="5.5" fill="currentColor" stroke="none" />
+      
+      {/* Dot 4: Column 2, Row 1 (active - filled) */}
+      <circle cx="62" cy="32" r="5.5" fill="currentColor" stroke="none" />
+      
+      {/* Dot 5: Column 2, Row 2 (empty - thin stroke) */}
+      <circle cx="62" cy="50" r="4.5" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.4" />
+      
+      {/* Dot 6: Column 2, Row 3 (empty - thin stroke) */}
+      <circle cx="62" cy="68" r="4.5" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.4" />
     </svg>
   );
 }

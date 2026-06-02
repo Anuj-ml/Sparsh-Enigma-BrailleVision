@@ -3,7 +3,7 @@ import { BrailleProcessor } from './BrailleProcessor.js';
 import { TorchIcon } from './Icons.jsx';
 
 const CameraView = forwardRef(function CameraView(props, ref) {
-  const { className = '', onFrameProcessed } = props;
+  const { className = '', onFrameProcessed, onTorchChange, onStreamReadyChange } = props;
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const captureCanvasRef = useRef(null);
@@ -59,8 +59,10 @@ const CameraView = forwardRef(function CameraView(props, ref) {
           videoEl.addEventListener('loadedmetadata', syncCanvasSize);
           startProcessingLoop();
         }
+        onStreamReadyChange?.(true);
       } catch (cameraError) {
         setError('Camera access failed');
+        onStreamReadyChange?.(false);
       }
     };
 
@@ -81,6 +83,7 @@ const CameraView = forwardRef(function CameraView(props, ref) {
       }
       streamRef.current = null;
       trackRef.current = null;
+      onStreamReadyChange?.(false);
     };
   }, []);
 
@@ -108,6 +111,7 @@ const CameraView = forwardRef(function CameraView(props, ref) {
     try {
       await track.applyConstraints({ advanced: [{ torch: enabled }] });
       setTorchEnabled(enabled);
+      onTorchChange?.(enabled);
     } catch (torchError) {
       setError('Torch toggle failed');
     }

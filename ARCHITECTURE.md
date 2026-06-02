@@ -243,8 +243,7 @@ Raw CV decode text (shown as-is, no correction badge)
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon.png", "sizes": "any", "type": "image/png", "purpose": "any" }
   ]
 }
 ```
@@ -257,8 +256,7 @@ Cache on install (app shell):
   - /assets/*.js  (Vite bundle)
   - /assets/*.css
   - /manifest.json
-  - /icon-192.png
-  - /icon-512.png
+  - /icon.png
 
 Do NOT cache:
   - https://docs.opencv.org/4.8.0/opencv.js  (8MB WASM — too large, let browser cache)

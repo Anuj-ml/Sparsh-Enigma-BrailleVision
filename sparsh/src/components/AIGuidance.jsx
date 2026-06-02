@@ -17,7 +17,14 @@ function captureFrameAsBase64(canvas, maxWidth = 640) {
   return offscreen.toDataURL('image/jpeg', 0.6).split(',')[1];
 }
 
-export default function AIGuidance({ getCaptureCanvas }) {
+export default function AIGuidance({
+  getCaptureCanvas,
+  active: externalActive,
+  onActiveChange,
+  onGuidanceChange,
+  onModeChange,
+  showToggle = true,
+}) {
   const [active, setActive] = useState(false);
   const [guidance, setGuidance] = useState('Tap to start AI guidance');
   const [mode, setMode] = useState('off');
@@ -45,12 +52,14 @@ export default function AIGuidance({ getCaptureCanvas }) {
     const text = await getFrameGuidance(frame);
     if (text) {
       setGuidance(text);
+      onGuidanceChange?.(text);
       speakGuidance(text);
     }
   };
 
   const startFlashMode = () => {
     setMode('flash');
+    onModeChange?.('flash');
     if (frameTimerRef.current) clearInterval(frameTimerRef.current);
     frameTimerRef.current = setInterval(() => {
       processFlashFrame();
@@ -59,10 +68,12 @@ export default function AIGuidance({ getCaptureCanvas }) {
 
   const startLiveMode = () => {
     setMode('live');
+    onModeChange?.('live');
     connect(
       import.meta.env.VITE_GEMINI_API_KEY,
       (text) => {
         setGuidance(text);
+        onGuidanceChange?.(text);
         speakGuidance(text);
       },
       () => {
@@ -83,8 +94,10 @@ export default function AIGuidance({ getCaptureCanvas }) {
   const toggleGuidance = () => {
     const nextActive = !active;
     setActive(nextActive);
+    onActiveChange?.(nextActive);
     if (!nextActive) {
       setMode('off');
+      onModeChange?.('off');
       stopLoops();
       return;
     }
@@ -98,20 +111,38 @@ export default function AIGuidance({ getCaptureCanvas }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof externalActive !== 'boolean') return;
+    if (externalActive === active) return;
+    if (externalActive) {
+      setActive(true);
+      setGuidance('Starting AI guidance...');
+      startLiveMode();
+    } else {
+      setActive(false);
+      setMode('off');
+      onModeChange?.('off');
+      stopLoops();
+    }
+  }, [externalActive]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
       <div className="absolute left-1/2 top-14 z-20 -translate-x-1/2 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-center text-sm text-white backdrop-blur">
-        <span className="mr-2 text-xs text-emerald-400">{mode === 'live' ? '● LIVE' : mode === 'flash' ? '● AI' : '● OFF'}</span>
+        <span className="mr-2 text-xs text-emerald-400">
+          {mode === 'live' ? '● LIVE' : mode === 'flash' ? '● AI' : '● OFF'}
+        </span>
         {guidance}
       </div>
-
-      <button
-        type="button"
-        onClick={toggleGuidance}
-        className="rounded-full bg-white/15 px-4 py-2 text-sm text-white backdrop-blur transition hover:bg-white/25"
-      >
-        {active ? 'Stop AI Guidance' : 'Start AI Guidance'}
-      </button>
+      {showToggle ? (
+        <button
+          type="button"
+          onClick={toggleGuidance}
+          className="rounded-full bg-white/15 px-4 py-2 text-sm text-white backdrop-blur transition hover:bg-white/25"
+        >
+          {active ? 'Stop AI Guidance' : 'Start AI Guidance'}
+        </button>
+      ) : null}
     </>
   );
 }

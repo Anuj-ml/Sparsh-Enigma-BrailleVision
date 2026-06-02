@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react';
 import { cancelSpeech, speakWithGroq } from '../services/groqTTS.js';
 import { SpeakerIcon, MuteIcon } from './Icons.jsx';
 
-export default function TTSController({ text = '', className = '' }) {
-  const [muted, setMuted] = useState(false);
+export default function TTSController({
+  text = '',
+  className = '',
+  enabled,
+  onToggle,
+}) {
+  const [internalMuted, setInternalMuted] = useState(false);
+  const isControlled = typeof enabled === 'boolean';
+  const muted = isControlled ? !enabled : internalMuted;
 
   useEffect(() => {
     if (muted || !text) return;
@@ -12,7 +19,10 @@ export default function TTSController({ text = '', className = '' }) {
 
   const handleToggle = () => {
     const nextMuted = !muted;
-    setMuted(nextMuted);
+    if (!isControlled) {
+      setInternalMuted(nextMuted);
+    }
+    onToggle?.(!nextMuted);
     if (nextMuted) {
       cancelSpeech();
     }
