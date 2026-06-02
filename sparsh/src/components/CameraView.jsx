@@ -142,6 +142,17 @@ const CameraView = forwardRef(function CameraView(props, ref) {
     const captureCanvas = captureCanvasRef.current;
     if (!videoEl || !captureCanvas || videoEl.readyState < 2) return;
 
+    // Ensure canvas is sized correctly
+    if (captureCanvas.width <= 0 || captureCanvas.height <= 0 || videoEl.videoWidth <= 0 || videoEl.videoHeight <= 0) {
+      console.warn('Invalid canvas or video dimensions', {
+        canvasWidth: captureCanvas.width,
+        canvasHeight: captureCanvas.height,
+        videoWidth: videoEl.videoWidth,
+        videoHeight: videoEl.videoHeight,
+      });
+      return;
+    }
+
     if (captureCanvas.width !== videoEl.videoWidth || captureCanvas.height !== videoEl.videoHeight) {
       captureCanvas.width = videoEl.videoWidth;
       captureCanvas.height = videoEl.videoHeight;

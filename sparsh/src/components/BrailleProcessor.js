@@ -62,6 +62,17 @@ export class BrailleProcessor {
       return { chars: [], blobs: [], guidance: 'OpenCV not ready', confidence: [], rawString: '' };
     }
 
+    // Validate imageData
+    if (!imageData || !imageData.data || imageData.width <= 0 || imageData.height <= 0) {
+      console.error('Invalid imageData:', {
+        hasData: !!imageData?.data,
+        width: imageData?.width,
+        height: imageData?.height,
+        dataLength: imageData?.data?.length,
+      });
+      return { chars: [], blobs: [], guidance: 'Invalid frame data', confidence: [], rawString: '' };
+    }
+
     const cv = window.cv;
     let src;
     let gray;
@@ -147,6 +158,11 @@ export class BrailleProcessor {
 
       return { chars, blobs, guidance, confidence, rawString };
     } catch (error) {
+      console.error('BrailleProcessor error:', error?.message || error, {
+        stack: error?.stack,
+        imageDataWidth: imageData?.width,
+        imageDataHeight: imageData?.height,
+      });
       return { chars: [], blobs: [], guidance: 'Frame processing error', confidence: [], rawString: '' };
     } finally {
       if (detector) detector.delete();
