@@ -140,11 +140,14 @@ const CameraView = forwardRef(function CameraView(props, ref) {
   const processCurrentFrame = () => {
     const videoEl = videoRef.current;
     const captureCanvas = captureCanvasRef.current;
-    if (!videoEl || !captureCanvas || videoEl.readyState < 2) return;
+    
+    if (!videoEl || !captureCanvas || videoEl.readyState < 2) {
+      return;
+    }
 
     // Ensure canvas is sized correctly
     if (captureCanvas.width <= 0 || captureCanvas.height <= 0 || videoEl.videoWidth <= 0 || videoEl.videoHeight <= 0) {
-      console.warn('Invalid canvas or video dimensions', {
+      console.warn('[CameraView] Invalid dimensions', {
         canvasWidth: captureCanvas.width,
         canvasHeight: captureCanvas.height,
         videoWidth: videoEl.videoWidth,
@@ -159,13 +162,27 @@ const CameraView = forwardRef(function CameraView(props, ref) {
     }
 
     const captureCtx = captureCanvas.getContext('2d', { willReadFrequently: true });
-    if (!captureCtx) return;
-    captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
-    const frame = captureCtx.getImageData(0, 0, captureCanvas.width, captureCanvas.height);
-    const result = processorRef.current.processFrame(frame);
-    drawBlobs(result.blobs);
-    if (onFrameProcessed) {
-      onFrameProcessed(result);
+    if (!captureCtx) {
+      console.error('[CameraView] Failed to get canvas context');
+      return;
+    }
+    
+    try {
+      captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+      const frame = captureCtx.getImageData(0, 0, captureCanvas.width, captureCanvas.height);
+      
+      if (!frame || !frame.data || frame.data.length === 0) {
+        console.error('[CameraView] getImageData returned empty frame');
+        return;
+      }
+      
+      const result = processorRef.current.processFrame(frame);
+      drawBlobs(result.blobs);
+      if (onFrameProcessed) {
+        onFrameProcessed(result);
+      }
+    } catch (err) {
+      console.error('[CameraView] Frame processing exception:', err);
     }
   };
 
