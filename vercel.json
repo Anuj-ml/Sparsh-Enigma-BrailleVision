@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd sparsh && npm run build",
+  "outputDirectory": "sparsh/dist",
+  "framework": "vite",
+  "env": {
+    "VITE_GEMINI_API_KEY": "@gemini_api_key",
+    "VITE_GROQ_API_KEY": "@groq_api_key"
+  }
+}
