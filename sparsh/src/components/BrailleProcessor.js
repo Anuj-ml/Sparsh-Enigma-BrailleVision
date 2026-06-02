@@ -50,8 +50,22 @@ export class BrailleProcessor {
   async init() {
     return new Promise((resolve) => {
       const check = () => {
-        if (window.cv && window.cv.Mat) resolve();
-        else setTimeout(check, 100);
+        const cv = window.cv;
+        if (
+          cv &&
+          cv.Mat &&
+          cv.matFromImageData &&
+          cv.cvtColor &&
+          cv.adaptiveThreshold &&
+          cv.morphologyEx &&
+          cv.findContours &&
+          cv.contourArea &&
+          cv.minEnclosingCircle
+        ) {
+          resolve();
+        } else {
+          setTimeout(check, 100);
+        }
       };
       check();
     });
@@ -83,8 +97,6 @@ export class BrailleProcessor {
     let lap;
     let mean;
     let stddev;
-    let detector;
-    let keypoints;
 
     try {
       src = cv.matFromImageData(imageData);
@@ -96,15 +108,32 @@ export class BrailleProcessor {
       lap = new cv.Mat();
       mean = new cv.Mat();
       stddev = new cv.Mat();
-      keypoints = new cv.KeyPointVector();
 
       cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
 
-      const clahe = cv.createCLAHE(2.0, new cv.Size(8, 8));
+      // OpenCV.js 4.x exposes CLAHE via the cv.CLAHE constructor (not cv.createCLAHE).
+      // Some builds also expose a factory; try both, fall back to plain gray.
+      let clahe = null;
       try {
-        clahe.apply(gray, claheOut);
-      } finally {
-        clahe.delete();
+        if (typeof cv.CLAHE === 'function') {
+          clahe = new cv.CLAHE(2.0, new cv.Size(8, 8));
+        } else if (cv.createCLAHE && typeof cv.createCLAHE === 'function') {
+          clahe = cv.createCLAHE(2.0, new cv.Size(8, 8));
+        }
+      } catch (e) {
+        clahe = null;
+      }
+      if (clahe) {
+        try {
+          clahe.apply(gray, claheOut);
+        } catch (e) {
+          console.warn('CLAHE apply failed, using gray directly:', e);
+          gray.copyTo(claheOut);
+        } finally {
+          try { clahe.delete(); } catch (_) {}
+        }
+      } else {
+        gray.copyTo(claheOut);
       }
 
       cv.adaptiveThreshold(
@@ -119,22 +148,33 @@ export class BrailleProcessor {
 
       cv.morphologyEx(thresh, closed, cv.MORPH_CLOSE, kernel, new cv.Point(-1, -1), 1);
 
-      const params = new cv.SimpleBlobDetector_Params();
-      params.filterByArea = true;
-      params.minArea = 20;
-      params.maxArea = 400;
-      params.filterByCircularity = true;
-      params.minCircularity = 0.6;
-      params.filterByConvexity = false;
-      params.filterByInertia = false;
-      detector = cv.SimpleBlobDetector.create(params);
-      detector.detect(closed, keypoints);
+      // Custom blob detection using contours (SimpleBlobDetector not available in this OpenCV.js build)
+      const contours = new cv.MatVector();
+      const hierarchy = new cv.Mat();
+      cv.findContours(closed, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
       const blobs = [];
-      for (let i = 0; i < keypoints.size(); i++) {
-        const kp = keypoints.get(i);
-        blobs.push({ x: kp.pt.x, y: kp.pt.y, r: kp.size / 2 });
+      for (let i = 0; i < contours.size(); i++) {
+        const contour = contours.get(i);
+        const area = cv.contourArea(contour);
+        
+        // Filter by area (Braille dots are typically 20-400 px²)
+        if (area < 20 || area > 400) continue;
+
+        // Find the minimum enclosing circle
+        const circle = cv.minEnclosingCircle(contour);
+        const center = circle.center;
+        const radius = circle.radius;
+
+        // Filter by circularity (estimate: area / (π * r²) should be close to 1)
+        const circularity = area / (Math.PI * radius * radius);
+        if (circularity < 0.6) continue; // Too non-circular
+
+        blobs.push({ x: center.x, y: center.y, r: radius });
       }
+
+      contours.delete();
+      hierarchy.delete();
 
       const cells = inferGrid([...blobs]);
       const decoded = decodeSequence(cells);
@@ -165,8 +205,6 @@ export class BrailleProcessor {
       });
       return { chars: [], blobs: [], guidance: 'Frame processing error', confidence: [], rawString: '' };
     } finally {
-      if (detector) detector.delete();
-      if (keypoints) keypoints.delete();
       if (stddev) stddev.delete();
       if (mean) mean.delete();
       if (lap) lap.delete();
